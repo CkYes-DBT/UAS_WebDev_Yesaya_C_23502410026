@@ -2,18 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Results (Dummy)</title>
+    <title>Flight Results</title>
 </head>
 <body>
-    <h1>Flight Results (Dummy)</h1>
+    <h1>Flight Results</h1>
 
+    <h3>Search summary</h3>
     <p>Destination: {{ destination }}</p>
     <p>Departure date: {{ departure_date }}</p>
     <p>Trip type: {{ trip_type }}</p>
     <p>Return date: {{ return_date }}</p>
 
-    <p>(Later this page will be replaced with real data from the Amadeus API.)</p>
+    {% if error %}
+        <p><strong>Error:</strong> {{ error }}</p>
+    {% else %}
+        {% if flights %}
+            <table border="1" cellpadding="6" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Airline</th>
+                        <th>Route</th>
+                        <th>Departure</th>
+                        <th>Arrival</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for offer in flights %}
+                        <tr>
+                            <td>{{ offer.itineraries.0.segments.0.carrierCode }}</td>
+                            <td>
+                                {{ offer.itineraries.0.segments.0.departure.iataCode }}
+                                →
+                                {{ offer.itineraries.0.segments.0.arrival.iataCode }}
+                            </td>
+                            <td>{{ offer.itineraries.0.segments.0.departure.at }}</td>
+                            <td>{{ offer.itineraries.0.segments.0.arrival.at }}</td>
+                            <td>{{ offer.price.total }} {{ offer.price.currency }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No flights found.</p>
+        {% endif %}
+    {% endif %}
 
-    <a href="{% url 'search_flight' %}">Back to search</a>
+    <p><a href="{% url 'search_flight' %}">Back to search</a></p>
 </body>
 </html>
