@@ -185,32 +185,29 @@ def get_iata_code(city_input):
         city_input: User input (can be city name or IATA code)
     
     Returns:
-        str: 3-letter IATA code in uppercase, or original input if not found
+        tuple: (iata_code, is_known) - IATA code and whether it was found in database
     """
     if not city_input:
-        return ""
+        return ("", False)
     
     # Clean input
     cleaned = city_input.strip().lower()
     
-    # If already 3 letters (likely IATA code), return uppercase
-    if len(cleaned) == 3 and cleaned.isalpha():
-        return cleaned.upper()
-    
-    # Try to find in mapping
+    # Try to find in mapping first
     if cleaned in CITY_TO_IATA:
-        return CITY_TO_IATA[cleaned]
+        return (CITY_TO_IATA[cleaned], True)
     
     # Try partial match (e.g., "bkk" in "bangkok bkk")
     for city_name, iata_code in CITY_TO_IATA.items():
         if city_name in cleaned or cleaned in city_name:
-            return iata_code
+            return (iata_code, True)
     
-    # If not found, return original (uppercase if 3 letters)
-    if len(cleaned) == 3:
-        return cleaned.upper()
+    # If already 3 letters (might be valid IATA code), return with unknown flag
+    if len(cleaned) == 3 and cleaned.isalpha():
+        return (cleaned.upper(), False)
     
-    return city_input.strip().upper()[:3]  # Take first 3 letters as fallback
+    # Not found - return None to signal unknown
+    return (None, False)
 
 
 def get_city_suggestions(query):
