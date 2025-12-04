@@ -1,29 +1,29 @@
-import os
 import requests
+from django.conf import settings
 
 BASE_URL = "https://test.api.amadeus.com"
-
-CLIENT_ID = os.getenv("AMADEUS_CLIENT_ID")
-CLIENT_SECRET = os.getenv("AMADEUS_CLIENT_SECRET")
 
 
 def get_access_token():
     """Get access token from Amadeus API."""
-    if not CLIENT_ID or not CLIENT_SECRET:
+    client_id = settings.AMADEUS_CLIENT_ID
+    client_secret = settings.AMADEUS_CLIENT_SECRET
+
+    if not client_id or not client_secret:
         raise RuntimeError(
-            "Missing AMADEUS_CLIENT_ID or AMADEUS_CLIENT_SECRET in environment (.env file)."
+            "Missing AMADEUS_CLIENT_ID or AMADEUS_CLIENT_SECRET in settings.py."
         )
 
     url = f"{BASE_URL}/v1/security/oauth2/token"
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     data = {
         "grant_type": "client_credentials",
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
+        "client_id": client_id,
+        "client_secret": client_secret,
     }
 
     print(f"[DEBUG] POST {url}")
-    print(f"[DEBUG] Request data: grant_type={data['grant_type']}, client_id={CLIENT_ID[:5]}..., client_secret=***")
+    print(f"[DEBUG] Request data: grant_type={data['grant_type']}, client_id={client_id[:5]}..., client_secret=***")
 
     response = requests.post(url, headers=headers, data=data)
 
