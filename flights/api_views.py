@@ -1,30 +1,48 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from .serializers import FlightSearchSerializer, BookingSerializer
 from .amadeus_client import search_flights
 from .airport_mapping import get_iata_code
 
 
+@csrf_exempt
 @api_view(['POST'])
 def search_flights_api(request):
     """API endpoint for searching flights."""
+    print(f"[DEBUG] Received data: {request.data}")
     serializer = FlightSearchSerializer(data=request.data)
     
     if not serializer.is_valid():
+        print(f"[DEBUG] Validation errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
     origin_input = data['origin']
     destination_input = data['destination']
     departure_date = data['departure_date']
+    return_date = data.get('return_date')
+    trip_type = data.get('trip_type', 'one-way')
     adults = data.get('adults', 1)
     
-    # Validate date is not in the past
+    # Validate dates
     if departure_date < datetime.now().date():
         return Response(
             {"error": "Tanggal keberangkatan tidak boleh di masa lalu."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if trip_type == 'round-trip' and not return_date:
+        return Response(
+            {"error": "Tanggal kembali wajib diisi untuk penerbangan pulang-pergi."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if return_date and return_date < departure_date:
+        return Response(
+            {"error": "Tanggal kembali tidak boleh lebih awal dari tanggal keberangkatan."},
             status=status.HTTP_400_BAD_REQUEST
         )
     
@@ -50,15 +68,18 @@ def search_flights_api(request):
             origin=origin_code,
             destination=destination_code,
             departure_date=str(departure_date),
-            adults=adults
+            adults=adults,
+            return_date=str(return_date) if return_date else None
         )
         
         return Response({
             "success": True,
+            "trip_type": trip_type,
             "origin": origin_code,
             "destination": destination_code,
             "departure_date": str(departure_date),
-            "flights": flights_data.get("data", [])
+            "return_date": str(return_date) if return_date else None,
+            "flights": flights_data
         })
     
     except Exception as e:
@@ -68,6 +89,7 @@ def search_flights_api(request):
         )
 
 
+@csrf_exempt
 @api_view(['POST'])
 def create_booking_api(request):
     """API endpoint for creating a booking."""

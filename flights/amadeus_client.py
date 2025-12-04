@@ -38,7 +38,7 @@ def get_access_token():
     return json_data["access_token"]
 
 
-def search_flights(origin, destination, departure_date, adults=1):
+def search_flights(origin, destination, departure_date, adults=1, return_date=None):
     """Search for flight offers using Amadeus API."""
     access_token = get_access_token()
 
@@ -52,6 +52,10 @@ def search_flights(origin, destination, departure_date, adults=1):
         "currencyCode": "IDR",
         "max": 10,
     }
+    
+    # Add return date for round-trip
+    if return_date:
+        params["returnDate"] = return_date
 
     response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()

@@ -202,9 +202,9 @@ def get_iata_code(city_input):
         if city_name in cleaned or cleaned in city_name:
             return (iata_code, True)
     
-    # If already 3 letters (might be valid IATA code), return with unknown flag
+    # If already 3 letters (might be valid IATA code), accept it as valid
     if len(cleaned) == 3 and cleaned.isalpha():
-        return (cleaned.upper(), False)
+        return (cleaned.upper(), True)
     
     # Not found - return None to signal unknown
     return (None, False)

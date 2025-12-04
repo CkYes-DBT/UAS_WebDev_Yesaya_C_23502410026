@@ -7,11 +7,21 @@ const BookingForm = () => {
   const navigate = useNavigate();
   const { flight, searchParams } = location.state || {};
   
-  const [formData, setFormData] = useState({
-    passenger_name: '',
-    passenger_email: '',
-    passenger_phone: ''
+  const [contactData, setContactData] = useState({
+    email: '',
+    phone: ''
   });
+
+  const [passengers, setPassengers] = useState(
+    Array.from({ length: searchParams?.adults || 1 }, () => ({
+      first_name: '',
+      last_name: '',
+      passport_number: '',
+      birth_date: '',
+      gender: 'male'
+    }))
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -44,11 +54,17 @@ const BookingForm = () => {
     return `${day} ${month} ${year}, ${hours}:${minutes}`;
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
+  const handleContactChange = (e) => {
+    setContactData({
+      ...contactData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handlePassengerChange = (index, field, value) => {
+    const updated = [...passengers];
+    updated[index][field] = value;
+    setPassengers(updated);
   };
 
   const handleSubmit = async (e) => {
@@ -57,9 +73,13 @@ const BookingForm = () => {
     setError('');
 
     try {
+      // Combine first passenger data for the API
       const response = await axios.post('http://localhost:8000/api/booking/', {
         flight_id: flight.id,
-        ...formData
+        passenger_name: `${passengers[0].first_name} ${passengers[0].last_name}`,
+        passenger_email: contactData.email,
+        passenger_phone: contactData.phone,
+        passport_number: passengers[0].passport_number
       });
 
       if (response.data.success) {
@@ -101,28 +121,12 @@ const BookingForm = () => {
                       <td><span className="badge bg-primary fs-6">{bookingDetails.booking_reference}</span></td>
                     </tr>
                     <tr>
-                      <td><strong>Nama Penumpang</strong></td>
-                      <td>{bookingDetails.passenger_name}</td>
-                    </tr>
-                    <tr>
                       <td><strong>Email</strong></td>
                       <td>{bookingDetails.passenger_email}</td>
                     </tr>
                     <tr>
                       <td><strong>Nomor Telepon</strong></td>
                       <td>{bookingDetails.passenger_phone}</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Maskapai</strong></td>
-                      <td>{segment.carrierCode} - {segment.number}</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Rute</strong></td>
-                      <td>{searchParams.origin} → {searchParams.destination}</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Keberangkatan</strong></td>
-                      <td>{formatDateTime(segment.departure.at)}</td>
                     </tr>
                     <tr>
                       <td><strong>Total Harga</strong></td>
@@ -146,27 +150,20 @@ const BookingForm = () => {
   }
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <div className="card shadow-lg">
-            <div className="card-header" style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            }}>
-              <h3 className="text-white mb-0">
-                <i className="bi bi-clipboard-fill me-2"></i>
-                Form Booking Penerbangan
-              </h3>
+    <div className="container my-5">
+      <button className="btn btn-link text-decoration-none mb-3" onClick={() => navigate(-1)}>
+        <i className="bi bi-arrow-left me-2"></i>
+        Kembali
+      </button>
+
+      <div className="row">
+        <div className="col-lg-8">
+          <div className="card shadow-sm border-0 mb-4">
+            <div className="card-header bg-white border-bottom">
+              <h4 className="mb-0">Lengkapi Data Pemesanan</h4>
+              <p className="text-muted mb-0 small">Isi data penumpang sesuai identitas resmi</p>
             </div>
             <div className="card-body p-4">
-              <div className="alert alert-info mb-4">
-                <h5>Detail Penerbangan</h5>
-                <p className="mb-1"><strong>Maskapai:</strong> {segment.carrierCode} - {segment.number}</p>
-                <p className="mb-1"><strong>Rute:</strong> {searchParams.origin} → {searchParams.destination}</p>
-                <p className="mb-1"><strong>Keberangkatan:</strong> {formatDateTime(segment.departure.at)}</p>
-                <p className="mb-0"><strong>Total Harga:</strong> <span className="text-success fw-bold">{formatPrice(flight.price.total)}</span></p>
-              </div>
-
               {error && (
                 <div className="alert alert-danger" role="alert">
                   <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -175,79 +172,175 @@ const BookingForm = () => {
               )}
 
               <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">
-                    <i className="bi bi-person-fill me-2"></i>Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control form-control-lg"
-                    name="passenger_name"
-                    value={formData.passenger_name}
-                    onChange={handleChange}
-                    placeholder="Masukkan nama lengkap sesuai KTP/Paspor"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">
-                    <i className="bi bi-envelope-fill me-2"></i>Email
-                  </label>
-                  <input
-                    type="email"
-                    className="form-control form-control-lg"
-                    name="passenger_email"
-                    value={formData.passenger_email}
-                    onChange={handleChange}
-                    placeholder="email@example.com"
-                    required
-                  />
-                </div>
-
+                {/* Contact Data */}
                 <div className="mb-4">
-                  <label className="form-label">
-                    <i className="bi bi-telephone-fill me-2"></i>Nomor Telepon
-                  </label>
-                  <input
-                    type="tel"
-                    className="form-control form-control-lg"
-                    name="passenger_phone"
-                    value={formData.passenger_phone}
-                    onChange={handleChange}
-                    placeholder="08xxxxxxxxxx"
-                    required
-                  />
+                  <h5 className="border-bottom pb-2 mb-3">
+                    <span className="badge bg-primary me-2">1</span>
+                    Data Pemesan
+                  </h5>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small">EMAIL</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        name="email"
+                        value={contactData.email}
+                        onChange={handleContactChange}
+                        placeholder="akupadamu@gmail.com"
+                        required
+                      />
+                      <small className="text-muted">E-tiket akan dikirim ke sini</small>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small">NOMOR TELEPON</label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        name="phone"
+                        value={contactData.phone}
+                        onChange={handleContactChange}
+                        placeholder="12345678910"
+                        required
+                      />
+                      <small className="text-muted">Untuk notifikasi penting</small>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="d-grid gap-2">
+                {/* Passengers */}
+                {passengers.map((passenger, index) => (
+                  <div key={index} className="mb-4">
+                    <h5 className="border-bottom pb-2 mb-3">
+                      <span className="badge bg-primary me-2">{index + 2}</span>
+                      Penumpang {index + 1}
+                    </h5>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small">NAMA DEPAN</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={passenger.first_name}
+                          onChange={(e) => handlePassengerChange(index, 'first_name', e.target.value)}
+                          placeholder="Noel"
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small">NAMA BELAKANG</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={passenger.last_name}
+                          onChange={(e) => handlePassengerChange(index, 'last_name', e.target.value)}
+                          placeholder="Kresna"
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small">NOMOR PASPOR</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={passenger.passport_number}
+                          onChange={(e) => handlePassengerChange(index, 'passport_number', e.target.value)}
+                          placeholder="AD91739"
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small">TANGGAL LAHIR</label>
+                        <input
+                          type="date"
+                          className="form-control"
+                          value={passenger.birth_date}
+                          onChange={(e) => handlePassengerChange(index, 'birth_date', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label text-muted small">JENIS KELAMIN</label>
+                        <div>
+                          <div className="form-check form-check-inline">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name={`gender_${index}`}
+                              id={`male_${index}`}
+                              value="male"
+                              checked={passenger.gender === 'male'}
+                              onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                            />
+                            <label className="form-check-label" htmlFor={`male_${index}`}>
+                              Laki-laki
+                            </label>
+                          </div>
+                          <div className="form-check form-check-inline">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name={`gender_${index}`}
+                              id={`female_${index}`}
+                              value="female"
+                              checked={passenger.gender === 'female'}
+                              onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                            />
+                            <label className="form-check-label" htmlFor={`female_${index}`}>
+                              Perempuan
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="d-grid">
                   <button
                     type="submit"
-                    className="btn btn-success btn-lg"
+                    className="btn btn-primary btn-lg"
                     disabled={loading}
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                        Memproses booking...
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Memproses...
                       </>
                     ) : (
-                      <>
-                        <i className="bi bi-check-circle-fill me-2"></i>
-                        Konfirmasi Booking
-                      </>
+                      'Lanjut ke Pembayaran'
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => navigate(-1)}
-                  >
-                    <i className="bi bi-arrow-left me-2"></i>
-                    Kembali
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Sidebar */}
+        <div className="col-lg-4">
+          <div className="card shadow-sm border-0 sticky-top" style={{ top: '20px' }}>
+            <div className="card-body p-4">
+              <h5 className="mb-3">Ringkasan Pemesanan</h5>
+              <div className="mb-3">
+                <div className="d-flex justify-content-between mb-2">
+                  <span className="text-muted">Rute</span>
+                  <strong>{searchParams.origin} → {searchParams.destination}</strong>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span className="text-muted">Keberangkatan</span>
+                  <span>{formatDateTime(segment.departure.at)}</span>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span className="text-muted">Penumpang</span>
+                  <span>{passengers.length} Orang</span>
+                </div>
+              </div>
+              <hr />
+              <div className="d-flex justify-content-between mb-2">
+                <strong>Total Pembayaran</strong>
+                <strong className="text-primary fs-5">{formatPrice(flight.price.total)}</strong>
+              </div>
             </div>
           </div>
         </div>
