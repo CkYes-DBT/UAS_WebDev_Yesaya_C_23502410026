@@ -50,3 +50,141 @@ code {
   border-radius: 16px !important;
 }
 
+/* Responsive Styles - Tablet and below */
+@media (max-width: 991.98px) {
+  .price-text {
+    font-size: 1.25rem !important;
+  }
+  
+  .btn-select-flight {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Mobile - Small devices */
+@media (max-width: 767.98px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Stack flight info vertically on mobile */
+  .col-lg-3, .col-lg-5, .col-lg-4 {
+    margin-bottom: 0.75rem;
+  }
+  
+  .btn-select-flight {
+    width: 100%;
+  }
+  
+  /* Booking summary - not sticky on mobile */
+  .booking-summary {
+    position: static !important;
+    margin-top: 2rem;
+  }
+  
+  /* Search form padding */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+  }
+  
+  h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  h5 {
+    font-size: 1rem !important;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 575.98px) {
+  body {
+    font-size: 0.875rem;
+  }
+  
+  .card-body {
+    padding: 1rem !important;
+  }
+  
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  h3, h4, h5 {
+    font-size: 1rem !important;
+  }
+  
+  /* Reduce spacing */
+  .py-4 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+  
+  .py-3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mb-3 {
+    margin-bottom: 0.75rem !important;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+
